@@ -1,47 +1,10 @@
-# Byte-compiled / cache files
 __pycache__/
-*.py[cod]
+*.pyc
 *.pyo
-
-# Jupyter Notebook checkpoints
-.ipynb_checkpoints
-
-# Environment variables / secrets
-.env
-.env.*
-
-# Python virtual environment
-venv/
-ENV/
+*.pyd
 env/
-
-# MacOS
+venv/
+.env
 .DS_Store
-
-# Logs
-*.log
-
-# OS files
-Thumbs.db
-
-# VSCode settings (optional)
-.vscode/
-
-# PyCharm settings (optional)
-.idea/
-
-# Test, coverage and build output
-.coverage
-*.egg-info/
-dist/
-build/
-
-# Ignore database or large datasets (you can keep battery_data.csv if needed)
 *.sqlite3
-*.db
-*.h5
-*.parquet
-*.csv
-!battery_data.csv
-
-
+*.log

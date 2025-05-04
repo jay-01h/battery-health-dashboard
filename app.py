@@ -164,5 +164,5 @@ def update_trend_graph(selected_metrics, start_date, end_date, n_intervals, grap
     )
     return fig
 
-if __name__ == '__main__':
-    app.run(debug=False)
+# if __name__ == '__main__':
+#     app.run(debug=False)
