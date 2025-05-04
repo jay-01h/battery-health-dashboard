@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: dash-app
+    env: python
+    buildCommand: ""
+    startCommand: gunicorn app:app.server
+    plan: free
+    branch: main  # or your default branch
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10
