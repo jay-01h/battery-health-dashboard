@@ -1,16 +1,12 @@
 from dash import Dash, dcc, html, Input, Output, State, MATCH
-import dash_bootstrap_components as dbc
+import dash_bootstrap_components as dbc 
 import pandas as pd
 import plotly.graph_objs as go
 from datetime import datetime
 
-# Try loading the data
-try:
-    df = pd.read_csv('battery_data.csv', parse_dates=['Time Stamp'])
-    df.rename(columns={'Time Stamp': 'timestamp'}, inplace=True)
-except Exception as e:
-    print("Error loading CSV:", e)
-    df = pd.DataFrame(columns=['timestamp', 'Voltage', 'Temperature', 'Capacity', 'battery_id'])
+# Load and preprocess data
+df = pd.read_csv('battery_data.csv', parse_dates=['Time Stamp'])
+df.rename(columns={'Time Stamp': 'timestamp'}, inplace=True)
 
 METRICS = {
     'Voltage': 'Voltage (V)',
@@ -20,7 +16,7 @@ METRICS = {
     'WhAccu': 'Accumulated Wh'
 }
 
-# Initialize Dash
+# Initialize app
 app = Dash(__name__, external_stylesheets=[dbc.themes.LUX])
 server = app.server
 
@@ -38,6 +34,7 @@ navbar = dbc.Navbar(
 app.layout = dbc.Container(fluid=True, children=[
     navbar,
 
+    # Intro text with styling
     dbc.Row(dbc.Col(html.Div([
         html.P(
             "Welcome to the live monitoring dashboard for battery health across multiple packs. "
@@ -47,6 +44,7 @@ app.layout = dbc.Container(fluid=True, children=[
         )
     ]), width=12), className='mb-4'),
 
+    # Filters
     dbc.Row([
         dbc.Col([
             html.Label('Metrics to Plot:'),
@@ -59,20 +57,24 @@ app.layout = dbc.Container(fluid=True, children=[
             html.Label('Date Range:'),
             html.Br(),
             dcc.DatePickerRange(id='date-picker-range',
-                                start_date=df['timestamp'].min().date() if not df.empty else None,
-                                end_date=df['timestamp'].max().date() if not df.empty else None,
-                                min_date_allowed=df['timestamp'].min().date() if not df.empty else None,
-                                max_date_allowed=df['timestamp'].max().date() if not df.empty else None,
+                                start_date=df['timestamp'].min().date(),
+                                end_date=df['timestamp'].max().date(),
+                                min_date_allowed=df['timestamp'].min().date(),
+                                max_date_allowed=df['timestamp'].max().date(),
                                 display_format='DD-MM-YYYY',
                                 style={'width': '100%'},
-                                persistence=True)
-        ], width=4, className='p-2 text-center'),
+                                className='p-2',
+                                persistence=True,
+                                
+                                )
+        ], width=4,className='p-2 text-center'),
         dbc.Col([
             html.Label('Last Updated:'),
-            html.Div(id='last-updated', style={'fontWeight': 'bold'}),
+            html.Div(id='last-updated', style={'fontWeight': 'bold'}),     
         ], width=3, className='p-2 text-end'),
     ], className='mb-4'),
 
+    # KPIs
     dbc.Row([
         dbc.Col(dbc.Card(dbc.CardBody([
             html.H6('Avg Voltage', className='card-title'),
@@ -90,21 +92,21 @@ app.layout = dbc.Container(fluid=True, children=[
 
     dcc.Interval(id='interval-component', interval=60 * 1000, n_intervals=0),
 
-    # Dynamic Graphs
+    # Graphs per battery pack
     *[
         dbc.Row(dbc.Col(dcc.Loading(dcc.Graph(
             id={'type': 'trend-graph', 'index': pack}
         ), type='default'), width=12), className='mb-5')
         for pack in sorted(df['battery_id'].unique())
-    ] if not df.empty else [html.Div("No battery data found.", className="text-center text-danger")],
+    ],
 
     html.Hr(),
     dbc.Row(dbc.Col(html.Footer(
-        'Jaydeep Hajare | PowerCo', className='text-center text-muted'
+        'Jaydeep Hajare | PowerCo ', className='text-center text-muted'
     ), width=12))
 ])
 
-# Helpers
+# Helper function
 def filter_df(start_date, end_date):
     mask = (
         (df['timestamp'] >= pd.to_datetime(start_date)) &
@@ -112,7 +114,7 @@ def filter_df(start_date, end_date):
     )
     return df.loc[mask]
 
-# Callbacks
+# KPI callback
 @app.callback(
     [Output('kpi-voltage', 'children'),
      Output('kpi-temperature', 'children'),
@@ -123,13 +125,14 @@ def filter_df(start_date, end_date):
      Input('interval-component', 'n_intervals')]
 )
 def update_kpis(start_date, end_date, n_intervals):
-    filtered = filter_df(start_date, end_date) if not df.empty else df
-    avg_v = f"{filtered['Voltage'].mean():.2f} V" if not filtered.empty else "N/A"
-    avg_t = f"{filtered['Temperature'].mean():.2f} °C" if not filtered.empty else "N/A"
-    avg_c = f"{filtered['Capacity'].mean():.2f} Ah" if not filtered.empty else "N/A"
+    filtered = filter_df(start_date, end_date)
+    avg_v = f"{filtered['Voltage'].mean():.2f} V"
+    avg_t = f"{filtered['Temperature'].mean():.2f} °C"
+    avg_c = f"{filtered['Capacity'].mean():.2f} Ah"
     last_updated = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     return avg_v, avg_t, avg_c, last_updated
 
+# Graph callback
 @app.callback(
     Output({'type': 'trend-graph', 'index': MATCH}, 'figure'),
     [Input('metric-dropdown', 'value'),
@@ -161,6 +164,9 @@ def update_trend_graph(selected_metrics, start_date, end_date, n_intervals, grap
     )
     return fig
 
+
+
 # Run server
 if __name__ == '__main__':
-    app.run_server(debug=False, host='0.0.0.0', port=8050)
+    # app.run_server(debug=False, host='0.0.0.0', port=8050)
+     app.run(debug=True)  # Uncomment for local testing
