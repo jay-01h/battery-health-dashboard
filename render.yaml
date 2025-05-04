@@ -3,7 +3,7 @@ services:
     name: dash-app
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:server
+    startCommand: gunicorn app:app:server --bind
     plan: free
     branch: main
     envVars:
