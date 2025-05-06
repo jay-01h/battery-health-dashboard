@@ -5,6 +5,16 @@ import plotly.graph_objs as go
 from datetime import datetime
 
 # Load and preprocess data
+# Local file
+#df = clean_raw_data("battery_data.csv")
+
+
+# Remote CSV or Excel
+#df = clean_raw_data("https://example.com/data.xlsx")
+
+# Zip file with a CSV inside
+#df = clean_raw_data("battery_logs.zip")
+
 df = pd.read_csv('battery_data.csv', parse_dates=['Time Stamp'])
 df.rename(columns={'Time Stamp': 'timestamp'}, inplace=True)
 
